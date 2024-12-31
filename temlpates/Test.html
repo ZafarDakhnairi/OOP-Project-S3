@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery Store</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Rock Salt', cursive;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://plus.unsplash.com/premium_photo-1664305032567-2c460e29dec1?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Z3JvY2VyeXxlbnwwfHwwfHx8MA%3D%3D'); /* Your background image */
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+            backdrop-filter: blur(25px); /* Glass-like blur effect */
+            border-radius: 50px;
+            padding: 20px;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 4px 30px rgba(235, 23, 23, 0.2);
+            color: #167fa2;
+            text-align: center;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: "Exo 2", serif;
+            font-size: 3rem; /* Adjust the font size */
+            color: #333;
+        }
+
+        /* Buttons */
+        .actions button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s ease-in-out;
+        }
+
+        .actions button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05); /* Slightly enlarges the button */
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f4f4f4;
+        }
+
+        table tr:hover {
+            background-color: #f0f8ff; /* Light blue background on hover */
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hidden Sections */
+        .hidden {
+            display: none;
+        }
+
+        #input-form input, #input-form select {
+            margin: 5px;
+            padding: 10px;
+            width: 200px;
+        }
+
+        #input-form button {
+            padding: 10px;
+            margin: 5px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s ease-in-out;
+        }
+
+        #input-form button:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        #input-form button:active {
+            transform: scale(1); /* Slightly shrink on click */
+        }
+
+        #stock-container {
+            max-height: 400px; /* Adjust the max height as needed */
+            overflow-y: auto; /* Makes the list scrollable */
+            margin-top: 20px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Management</h1>
+        
+        <!-- Buttons for Actions -->
+        <div class="actions">
+            <button onclick="viewStock()">View Stock</button>
+            <button onclick="addStock()">Add Stock</button>
+            <button onclick="sellItem()">Sell Item</button>
+            <button onclick="viewTransactions()">View Transactions</button>
+            <button onclick="viewProfit()">View Profit</button>
+            <button onclick="viewMoney()">View Money</button>
+        </div>
+
+        <!-- Display Stock -->
+        <div id="stock-container">
+            <h2>Stock</h2>
+            <table id="stock-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Buy Price</th>
+                        <th>Sell Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Stock items will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Input for Adding Stock/Selling Items -->
+        <div id="input-form" class="hidden">
+            <select id="item-select">
+                <!-- Items will be populated here dynamically -->
+            </select>
+            <input type="number" id="quantity" placeholder="Quantity">
+            <button onclick="processAction()">Submit</button>
+            <button onclick="cancelAction()">Cancel</button>
+        </div>
+
+        <!-- Transaction Logs -->
+        <div id="transactions-container" class="hidden">
+            <h2>Transactions</h2>
+            <table id="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Transaction records will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Profit and Money -->
+        <div id="profit-money-container" class="hidden">
+            <h2>Profit and Money</h2>
+            <p id="total-profit">Total Profit: $0.00</p>
+            <p id="current-money">Current Money: $0.00</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize mock data
+        let store = {
+            stock: [
+                { name: "Apple", buyPrice: 2.0, sellPrice: 3.0, quantity: 100 },
+                { name: "Banana", buyPrice: 1.5, sellPrice: 2.5, quantity: 100 },
+                { name: "Milk", buyPrice: 10.0, sellPrice: 12.0, quantity: 50 },
+                { name: "Bread", buyPrice: 5.0, sellPrice: 7.0, quantity: 80 },
+                { name: "Burger", buyPrice: 8.0, sellPrice: 17.0, quantity: 80 },
+                { name: "Juice", buyPrice: 1.5, sellPrice: 2.5, quantity: 80 },
+                { name: "Chocolate Sooper", buyPrice: 0.4, sellPrice: 0.7, quantity: 80 },
+                { name: "Soda Can", buyPrice: 3.0, sellPrice: 5.0, quantity: 80 },
+                { name: "Chicken Nuggets", buyPrice: 7.5, sellPrice: 16.0, quantity: 80 },
+                { name: "Sponge Gourd", buyPrice: 5.0, sellPrice: 7.0, quantity: 80 },
+                { name: "Egg Plant", buyPrice: 2.5, sellPrice: 3.0, quantity: 80 },
+                { name: "Eggs", buyPrice: 2.0, sellPrice: 3.0, quantity: 200 },
+                { name: "Tea Cake", buyPrice: 4.0, sellPrice: 5.5, quantity: 80 },
+                { name: "Donut", buyPrice: 4.0, sellPrice: 7.0, quantity: 80 },
+                { name: "Nimco", buyPrice: 8.0, sellPrice:12.0, quantity: 80 },
+                { name: "Handwash", buyPrice: 2.0, sellPrice: 5.0, quantity: 200 },
+                { name: "Pamper", buyPrice: 1.5, sellPrice: 3.0, quantity: 200 },
+                { name: "Pine Nuts", buyPrice: 30.0, sellPrice: 40.0, quantity: 200 },
+                { name: "Water Bottle", buyPrice: 0.5, sellPrice: 1.0, quantity: 200 },
+                { name: "Drawstring", buyPrice: 0.5, sellPrice: 1.0, quantity: 200 },
+                { name: "Razor", buyPrice: 0.3, sellPrice: 0.9, quantity: 10 },
+                { name: "Dagger", buyPrice: 130.0, sellPrice: 200.0, quantity: 10 },
+            ],
+            transactions: [],
+            money: 1000.0
+        };
+
+        // Function to update stock table
+        function updateStockTable() {
+            const stockTable = document.querySelector('#stock-table tbody');
+            stockTable.innerHTML = ""; // Clear existing rows
+            store.stock.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.buyPrice}</td>
+                    <td>${item.sellPrice}</td>
+                `;
+                stockTable.appendChild(row);
+            });
+        }
+
+        // Function to update transaction table
+        function updateTransactionTable() {
+            const transactionsTable = document.querySelector('#transactions-table tbody');
+            transactionsTable.innerHTML = ""; // Clear existing rows
+            store.transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaction.type}</td>
+                    <td>${transaction.itemName}</td>
+                    <td>${transaction.quantity}</td>
+                    <td>${transaction.totalAmount}</td>
+                `;
+                transactionsTable.appendChild(row);
+            });
+        }
+
+        // Function to populate the item selection dropdown
+        function populateItemSelect() {
+            const itemSelect = document.getElementById('item-select');
+            itemSelect.innerHTML = ""; // Clear existing options
+            store.stock.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.name;
+                option.textContent = item.name;
+                itemSelect.appendChild(option);
+            });
+        }
+
+        // Function to process actions (Add stock/Sell item)
+        function processAction() {
+            const itemName = document.getElementById('item-select').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if (itemName && quantity) {
+                const item = store.stock.find(i => i.name === itemName);
+                if (item) {
+                    if (store.money >= item.buyPrice * quantity) {
+                        item.quantity += quantity;
+                        store.money -= item.buyPrice * quantity;
+                        store.transactions.push({
+                            type: "Add",
+                            itemName: itemName,
+                            quantity: quantity,
+                            totalAmount: item.buyPrice * quantity
+                        });
+                        alert(`${quantity} units of ${itemName} added to stock.`);
+                    } else {
+                        alert("Insufficient funds to add stock.");
+                    }
+                } else {
+                    alert("Item not found.");
+                }
+                updateStockTable();
+            } else {
+                alert("Please enter valid item name and quantity.");
+            }
+            cancelAction();
+        }
+
+        // Function to handle selling items
+        function sellItem() {
+            const itemName = prompt("Enter item name:");
+            const quantity = parseInt(prompt("Enter quantity:"));
+            if (itemName && quantity) {
+                const item = store.stock.find(i => i.name === itemName);
+                if (item && item.quantity >= quantity) {
+                    item.quantity -= quantity;
+                    const totalRevenue = item.sellPrice * quantity;
+                    store.money += totalRevenue;
+                    store.transactions.push({
+                        type: "Sell",
+                        itemName: itemName,
+                        quantity: quantity,
+                        totalAmount: totalRevenue
+                    });
+                    alert(`${quantity} units of ${itemName} sold.`);
+                } else {
+                    alert("Insufficient stock or invalid item.");
+                }
+            }
+            updateStockTable();
+        }
+
+        // Show Stock View
+        function viewStock() {
+            document.getElementById('stock-container').style.display = "block";
+            document.getElementById('transactions-container').style.display = "none";
+            document.getElementById('profit-money-container').style.display = "none";
+            updateStockTable();
+        }
+
+        // Show Transactions View
+        function viewTransactions() {
+            document.getElementById('stock-container').style.display = "none";
+            document.getElementById('transactions-container').style.display = "block";
+            document.getElementById('profit-money-container').style.display = "none";
+            updateTransactionTable();
+        }
+
+        // Show Profit and Money
+        function viewProfit() {
+            const totalProfit = store.transactions.reduce((acc, transaction) => {
+                if (transaction.type === "Sell") {
+                    const item = store.stock.find(i => i.name === transaction.itemName);
+                    acc += (transaction.totalAmount - (item.buyPrice * transaction.quantity));
+                }
+                return acc;
+            }, 0);
+            document.getElementById('total-profit').innerText = `Total Profit: $${totalProfit.toFixed(2)}`;
+            document.getElementById('current-money').innerText = `Current Money: $${store.money.toFixed(2)}`;
+            
+            document.getElementById('stock-container').style.display = "none";
+            document.getElementById('transactions-container').style.display = "none";
+            document.getElementById('profit-money-container').style.display = "block";
+        }
+
+        // View Money
+        function viewMoney() {
+            alert(`Current Money: $${store.money.toFixed(2)}`);
+        }
+
+        // Add Stock Button
+        function addStock() {
+            document.getElementById('input-form').classList.remove('hidden');
+            populateItemSelect();
+        }
+
+        // Cancel Form
+        function cancelAction() {
+            document.getElementById('input-form').classList.add('hidden');
+        }
+
+        // Initial Display
+        viewStock();
+    </script>
+</body>
+</html>

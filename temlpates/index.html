@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery Store</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Rock Salt', cursive;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://plus.unsplash.com/premium_photo-1664305032567-2c460e29dec1?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Z3JvY2VyeXxlbnwwfHwwfHx8MA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px);
+            border-radius: 50px;
+            padding: 20px;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 4px 30px rgba(235, 23, 23, 0.2);
+            color: #167fa2;
+            text-align: center;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: "Exo 2", serif;
+            font-size: 3rem;
+            color: #333;
+        }
+
+        /* Buttons */
+        .actions button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s ease-in-out;
+        }
+
+        .actions button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f4f4f4;
+        }
+
+        table tr:hover {
+            background-color: #f0f8ff;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hidden Sections */
+        .hidden {
+            display: none;
+        }
+
+        #input-form input, #input-form select {
+            margin: 5px;
+            padding: 10px;
+            width: 200px;
+        }
+
+        #input-form button {
+            padding: 10px;
+            margin: 5px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s ease-in-out;
+        }
+
+        #input-form button:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        #stock-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #007BFF;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            font-size: 16px;
+            z-index: 1000;
+            display: none;
+            animation: fadeIn 0.5s, fadeOut 0.5s 2.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Management</h1>
+        <div class="actions">
+            <button onclick="viewStock()">View Stock</button>
+            <button onclick="addStock()">Add Stock</button>
+            <button onclick="sellStock()">Sell Item</button>
+            <button onclick="viewTransactions()">View Transactions</button>
+            <button onclick="viewProfit()">View Profit</button>
+            <button onclick="viewMoney()">View Money</button>
+        </div>
+        <div id="notification" class="notification"></div>
+        <div id="stock-container">
+            <h2>Stock</h2>
+            <table id="stock-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Buy Price</th>
+                        <th>Sell Price</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="input-form" class="hidden">
+            <input type="text" id="item-name" placeholder="Item Name">
+            <input type="number" id="buy-price" placeholder="Buy Price">
+            <input type="number" id="sell-price" placeholder="Sell Price">
+            <input type="number" id="quantity" placeholder="Quantity">
+            <button onclick="processAction()">Submit</button>
+            <button onclick="cancelAction()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let store = {
+            stock: [
+                { name: "Apple", buyPrice: 2.0, sellPrice: 3.0, quantity: 100 },
+                { name: "Banana", buyPrice: 1.5, sellPrice: 2.5, quantity: 100 },
+                { name: "Milk", buyPrice: 10.0, sellPrice: 12.0, quantity: 50 }
+            ],
+            transactions: [],
+            money: 1000.0
+        };
+
+        function viewStock() {
+            document.getElementById('stock-container').style.display = "block";
+            document.getElementById('input-form').classList.add('hidden');
+            updateStockTable();
+        }
+
+        function updateStockTable() {
+            const stockTable = document.querySelector('#stock-table tbody');
+            stockTable.innerHTML = "";
+            store.stock.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.buyPrice}</td>
+                    <td>${item.sellPrice}</td>
+                `;
+                stockTable.appendChild(row);
+            });
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        function processAction() {
+            const itemName = document.getElementById('item-name').value;
+            const buyPrice = parseFloat(document.getElementById('buy-price').value);
+            const sellPrice = parseFloat(document.getElementById('sell-price').value);
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if (document.getElementById('input-form').dataset.action === "add") {
+                if (itemName && buyPrice > 0 && sellPrice > 0 && quantity > 0) {
+                    const existingItem = store.stock.find(item => item.name === itemName);
+                    if (existingItem) {
+                        existingItem.quantity += quantity;
+                        existingItem.buyPrice = buyPrice;
+                        existingItem.sellPrice = sellPrice;
+                    } else {
+                        store.stock.push({ name: itemName, buyPrice, sellPrice, quantity });
+                    }
+                    showNotification(`${quantity} units of ${itemName} added.`);
+                } else {
+                    showNotification("Please fill all fields with valid values.");
+                }
+            }
+            updateStockTable();
+            cancelAction();
+        }
+
+        function addStock() {
+            document.getElementById('input-form').classList.remove('hidden');
+            document.getElementById('input-form').dataset.action = "add";
+            document.getElementById('item-name').value = "";
+            document.getElementById('buy-price').value = "";
+            document.getElementById('sell-price').value = "";
+            document.getElementById('quantity').value = "";
+        }
+
+        function cancelAction() {
+            document.getElementById('input-form').classList.add('hidden');
+        }
+
+        viewStock();
+    </script>
+</body>
+</html>
